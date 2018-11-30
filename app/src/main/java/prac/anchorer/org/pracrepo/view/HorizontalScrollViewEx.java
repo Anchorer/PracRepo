@@ -16,8 +16,10 @@ public class HorizontalScrollViewEx extends ViewGroup {
     private int mChildIndex;
 
     // 记录上次滑动的坐标
-    private int mLastX, mLastY = 0;
-    private int mLastXIntercept, mLastYIntercept = 0;
+    private int mLastX = 0;
+    private int mLastY = 0;
+    private int mLastXIntercept = 0;
+    private int mLastYIntercept = 0;
 
     private Scroller mScroller;
     private VelocityTracker mVelocityTracker;
@@ -40,7 +42,9 @@ public class HorizontalScrollViewEx extends ViewGroup {
 
     private void init() {
         if (mScroller == null) {
+            // 用来实现流畅滑动
             mScroller = new Scroller(getContext());
+            // 用来计算手势滑动速度
             mVelocityTracker = VelocityTracker.obtain();
         }
     }
@@ -54,6 +58,7 @@ public class HorizontalScrollViewEx extends ViewGroup {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
                 intercept = false;
+                // 如果正在滑动，则拦截
                 if (!mScroller.isFinished()) {
                     mScroller.abortAnimation();
                     intercept = true;
@@ -63,6 +68,7 @@ public class HorizontalScrollViewEx extends ViewGroup {
             case MotionEvent.ACTION_MOVE: {
                 int deltaX = x - mLastXIntercept;
                 int deltaY = y - mLastYIntercept;
+                // 拦截横向滑动
                 if (Math.abs(deltaX) >= Math.abs(deltaY)) {
                     intercept = true;
                 } else {
@@ -93,14 +99,16 @@ public class HorizontalScrollViewEx extends ViewGroup {
 
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN: {
+                // 如果正在滑动，则触摸事件可以停止滑动
                 if (!mScroller.isFinished()) {
                     mScroller.abortAnimation();
                 }
                 break;
             }
             case MotionEvent.ACTION_MOVE: {
+                // 随着手势进行滑动
                 int deltaX = x - mLastX;
-                smoothScrollBy(-deltaX, 0);
+                scrollBy(-deltaX, 0);
                 break;
             }
             case MotionEvent.ACTION_UP: {
@@ -108,6 +116,7 @@ public class HorizontalScrollViewEx extends ViewGroup {
                 mVelocityTracker.computeCurrentVelocity(1000);
                 float xVelocity = mVelocityTracker.getXVelocity();
 
+                // 如果滑动速度比较大，则自动跳到下一项子条目
                 if (Math.abs(xVelocity) > 50) {
                     mChildIndex = xVelocity > 0 ? mChildIndex - 1 : mChildIndex + 1;
                 } else {
@@ -129,17 +138,15 @@ public class HorizontalScrollViewEx extends ViewGroup {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        int measureWidth;
+        int measureHeight;
+        final int childCount = getChildCount();
         measureChildren(widthMeasureSpec, heightMeasureSpec);
 
-        int widthMeasureMode = MeasureSpec.getMode(widthMeasureSpec);
         int widthMeasureSize = MeasureSpec.getSize(widthMeasureSpec);
-        int heightMeasureMode = MeasureSpec.getMode(heightMeasureSpec);
+        int widthMeasureMode = MeasureSpec.getMode(widthMeasureSpec);
         int heightMeasureSize = MeasureSpec.getSize(heightMeasureSpec);
-
-        int measureWidth = 0;
-        int measureHeight = 0;
-
-        final int childCount = getChildCount();
+        int heightMeasureMode = MeasureSpec.getMode(heightMeasureSpec);
         if (childCount == 0) {
             setMeasuredDimension(0, 0);
         } else if (widthMeasureMode == MeasureSpec.AT_MOST && heightMeasureMode == MeasureSpec.AT_MOST) {
@@ -150,11 +157,11 @@ public class HorizontalScrollViewEx extends ViewGroup {
         } else if (widthMeasureMode == MeasureSpec.AT_MOST) {
             final View childView = getChildAt(0);
             measureWidth = childView.getMeasuredWidth() * childCount;
-            setMeasuredDimension(measureWidth, measureHeight);
+            setMeasuredDimension(measureWidth, heightMeasureSize);
         } else if (heightMeasureMode == MeasureSpec.AT_MOST) {
             final View childView = getChildAt(0);
             measureHeight = childView.getMeasuredHeight();
-            setMeasuredDimension(measureWidth, measureHeight);
+            setMeasuredDimension(widthMeasureSize, measureHeight);
         }
     }
 
@@ -164,8 +171,9 @@ public class HorizontalScrollViewEx extends ViewGroup {
         final int childCount = getChildCount();
         mChildrenSize = childCount;
 
+        // 调用各个子View的layout方法进行布局
         for (int i = 0; i < childCount; i++) {
-            final View childView = getChildAt(0);
+            final View childView = getChildAt(i);
             if (childView.getVisibility() != View.GONE) {
                 mChildWidth = childView.getMeasuredWidth();
                 childView.layout(childLeftPosition, 0, childLeftPosition + mChildWidth, childView.getMeasuredHeight());
