@@ -9,12 +9,16 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
 
-        <activity android:name=".view.HorizontalScrollViewActivity">
+        <activity android:name=".EntryActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+
+        <activity android:name=".view.HorizontalScrollViewActivity"/>
+        <activity android:name=".anim.LayoutAnimActivity"/>
+        <activity android:name=".anim.ObjectAnimActivity"/>
 
     </application>
 </manifest>
